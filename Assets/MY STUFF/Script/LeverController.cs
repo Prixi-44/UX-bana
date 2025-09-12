@@ -1,34 +1,47 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LeverController : MonoBehaviour
 {
+    public enum MoveAxis { Forward, Right, Up }
+
     [Header("Lever Setup")]
-    public HingeJoint hinge;   // Assign in inspector
+    public HingeJoint hinge;
     [Range(-1f, 1f)]
-    public float normalizedValue; // -1 = full back, +1 = full forward
+    public float normalizedValue;
 
     [Header("Controlled Object")]
-    public Transform controlledObject;   // The current object to move
-    public float moveSpeed = 5f;         // Movement speed
+    public Transform controlledObject;
+    public float moveSpeed = 5f;
+    public MoveAxis moveAxis = MoveAxis.Forward; // choose in Inspector
 
     void Update()
     {
-        // Read lever angle & normalize it (-1 to 1)
+        // Read & normalize hinge angle
         float angle = hinge.angle;
         normalizedValue = Mathf.InverseLerp(hinge.limits.min, hinge.limits.max, angle) * 2f - 1f;
 
-        // Move the active object if assigned
+        // Apply movement
         if (controlledObject != null)
         {
-            Vector3 move = controlledObject.forward * (normalizedValue * moveSpeed * Time.deltaTime);
-            controlledObject.position += move;
+            Vector3 dir = Vector3.zero;
+
+            switch (moveAxis)
+            {
+                case MoveAxis.Forward: dir = controlledObject.forward; break;
+                case MoveAxis.Right: dir = controlledObject.right; break;
+                case MoveAxis.Up: dir = controlledObject.up; break;
+            }
+
+            controlledObject.position += dir * (normalizedValue * moveSpeed * Time.deltaTime);
         }
     }
 
-    // Called by UI buttons to switch targets
+    // 🔥 This lets UI buttons switch what object is controlled
     public void SetControlledObject(Transform newTarget)
     {
         controlledObject = newTarget;
     }
 }
+
+
 
